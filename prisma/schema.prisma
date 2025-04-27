@@ -1,0 +1,57 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  email     String    @unique
+  password  String
+  name      String?
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt DateTime  @default(now()) @map("updated_at") @db.Timestamptz()
+  projects  Project[]
+
+  @@map("users")
+}
+
+model Project {
+  id          Int         @id @default(autoincrement())
+  name        String
+  description String?
+  userId      Int         @map("user_id")
+  createdAt   DateTime    @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt   DateTime    @default(now()) @map("updated_at") @db.Timestamptz()
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  poolConfig  PoolConfig?
+
+  @@map("projects")
+}
+
+model PoolConfig {
+  id              Int       @id @default(autoincrement())
+  projectId       Int       @unique @map("project_id")
+  shape           String
+  width           Decimal   @db.Decimal(10, 2)
+  length          Decimal   @db.Decimal(10, 2)
+  depth           Decimal   @db.Decimal(10, 2)
+  cornerRadius    Decimal?  @map("corner_radius") @db.Decimal(10, 2)
+  material        String
+  finish          String
+  color           String
+  hasStairs       Boolean   @default(false) @map("has_stairs")
+  stairsPosition  String?   @map("stairs_position")
+  customShapeData String?   @map("custom_shape_data")
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt       DateTime  @default(now()) @map("updated_at") @db.Timestamptz()
+  project         Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("pool_configs")
+}
